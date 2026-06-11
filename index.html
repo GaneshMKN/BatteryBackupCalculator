@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battery Backup Calculator</title>
+    <style>
+        fieldset {
+            display: inline-block;
+            width: auto;
+        }
+
+        button {
+            display: block;
+            margin: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Battery Calculator</h1>
+    <form onsubmit="addRow()">
+        <fieldset>
+            <legend>load </legend>
+            <label for="loadVolt">Enter the load voltage </label>
+            <input type="num" name="loadVolt"><br>
+
+            <label for="loadAmp">Enter the load ampere </label>
+            <input type="num" name="loadAmp"><br>
+
+            <label id="loadPreview">0W</label>
+        </fieldset>
+
+        <fieldset>
+            <legend>battery</legend>
+            <!-- voltage section -->
+            <label for="cellVolt">Enter the cell Voltage </label>
+            <input type="num" name="cellVolt" placeholder="3.7v"><br>
+
+            <label for="batteryNum">S</label>
+            <input type="number" name="batteryNum" style="width:40px;" min="1" start="1">
+
+            <label for="batteryVolt">Voltage⚡</label>
+            <input type="text" name="batteryVolt" id="batteryVolt" style="width: 40px;"><br><br>
+
+            <label for="voltageSlider" id="sliderLabel" style="display:inline-block; width:50px;">1</label>
+            <input type="range" name="voltageSlider" id="" start="1" step="1" min="1" max="10">
+            <br><br>
+            
+            <!-- ampere section -->
+            <label for="cellAmp">Enter the battery mah </label>
+            <input type="num" name="cellAmp"><br>
+            
+            <label for="parallelNum">P</label>
+            <input type="number" name="parallelNum" style="width:40px;" min="1" start="1">
+            
+            <label for="batteryAmp">Ampere</label>
+            <input type="text" name="batteryAmp" id="batteryAmp" style="width: 40px;"><br><br>
+
+            <label for="capacitySlider" id="capacitysliderLabel" style="display:inline-block; width:50px;">1</label>
+            <input type="range" name="capacitySlider" start="1" step="1" min="1" max="10">
+            <br><br>
+
+            <label id="batteryPreview">0W</label>
+
+        </fieldset>
+        <button type="submit" value="Submit">Submit</button>
+    </form>
+    <table border="1">
+        <tr>
+            <td width="5%">load Voltage⚡</td>
+            <td width="5%">load ampere</td>
+            <td width="5%">battery Voltage⚡</td>
+            <td width="5%">battery ampere</td>
+            <td width="10%">load Wh</td>
+            <td width="10%">battery Wh</td>
+            <td width="10%">Estimated running time (load/battery)</td>
+            <td width="10%">number of cells🔋</td>
+        </tr>
+    </table>
+
+
+    <script>
+        let loadVolt, loadAmp, batteryVolt, batteryAmp;
+        let table = document.getElementsByTagName("table")[0];
+        let form=document.getElementsByTagName("form")[0];
+        function addRow() {
+            event.preventDefault();
+            loadVolt = event.target.loadVolt.value;
+            loadAmp = event.target.loadAmp.value;
+            batteryVolt = event.target.batteryVolt.value;
+            batteryAmp = event.target.batteryAmp.value;
+
+            let tr = document.createElement("tr");
+            // entry of form parameters
+            let td = document.createElement("td");
+            let txtnd = document.createTextNode(loadVolt);
+            td.appendChild(txtnd);
+            tr.appendChild(td);
+
+            td = document.createElement("td");
+            txtnd = document.createTextNode(loadAmp);
+            td.appendChild(txtnd);
+            tr.appendChild(td);
+
+            td = document.createElement("td");
+            txtnd = document.createTextNode(batteryVolt);
+            td.appendChild(txtnd);
+            tr.appendChild(td);
+
+            td = document.createElement("td");
+            txtnd = document.createTextNode(batteryAmp);
+            td.appendChild(txtnd);
+            tr.appendChild(td);
+
+
+
+            // load wh
+            let load = loadVolt * loadAmp;
+
+            td = document.createElement("td");
+            txtnd = document.createTextNode(load.toFixed(2));
+            td.appendChild(txtnd);
+            tr.appendChild(td);
+
+            // battery wh
+            let battery = batteryVolt * batteryAmp;
+
+            td = document.createElement("td");
+            txtnd = document.createTextNode(battery.toFixed(2));
+            td.appendChild(txtnd);
+            tr.appendChild(td);
+
+
+            // estimate time calculation
+            let time = battery / load;
+            td = document.createElement("td");
+            txtnd = document.createTextNode(`${time.toFixed(2)} h`);
+            td.appendChild(txtnd);
+            tr.appendChild(td);
+
+            td=document.createElement("td");
+            txtnd=document.createTextNode(`${event.target.parallelNum.value*event.target.batteryNum.value}`);
+            td.appendChild(txtnd);
+            tr.appendChild(td);
+
+
+            table.appendChild(tr);
+        }
+    
+        form.loadVolt.addEventListener("change", ()=>{
+            document.getElementById("loadPreview").innerText=form.loadAmp.value*event.target.value+" W";
+        })
+        form.loadAmp.addEventListener("change", ()=>{
+            document.getElementById("loadPreview").innerText=form.loadVolt.value*event.target.value+" W";
+        })
+
+        form.cellVolt.addEventListener("change", function() {
+            form.batteryVolt.value=(event.target.value*form.batteryNum.value).toFixed(2);
+        });
+        form.batteryNum.addEventListener("change", function() {
+            form.batteryVolt.value=(event.target.value*form.cellVolt.value).toFixed(2);
+            form.voltageSlider.value=form.batteryVolt.value;
+            let label=document.getElementById("sliderLabel");
+            label.innerText=form.batteryVolt.value;
+
+        });
+
+        form.cellAmp.addEventListener("change", function() {
+            form.batteryAmp.value=(event.target.value/1000)*form.parallelNum.value;
+        })
+        form.parallelNum.addEventListener("change", function() {
+            form.batteryAmp.value=(form.cellAmp.value/1000)*event.target.value;
+        })
+
+
+        form.voltageSlider.addEventListener("change", ()=>{
+            let label=document.getElementById("sliderLabel");
+            label.innerText=event.target.value;
+            form.cellVolt.value=3.7;
+            form.batteryNum.value=event.target.value;
+            form.batteryVolt.value=(form.cellVolt.value*event.target.value).toFixed(2);
+        })
+    
+        form.capacitySlider.addEventListener("change", ()=>{
+            let label=document.getElementById("capacitysliderLabel");
+            label.innerText=event.target.value;
+            form.parallelNum.value=event.target.value;
+            form.batteryAmp.value=(form.cellAmp.value/1000)*event.target.value;
+        })
+    
+        form.batteryVolt.addEventListener("onchange", ()=>{
+            document.getElementById("batteryPreview").innerText=form.batteryAmp.value*event.target.value+" W";
+        })
+    
+    </script>
+</body>
+
+</html>
